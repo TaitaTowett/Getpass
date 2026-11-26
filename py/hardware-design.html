@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#123d91">
+  <title>GETPASS | Reader hardware concept</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #14213d;
+      --muted: #62728b;
+      --line: #dce5f2;
+      --paper: #fff;
+      --canvas: #f4f7fd;
+      --blue: #175cff;
+      --blue-dark: #123d91;
+      --blue-soft: #edf3ff;
+      --cyan: #31c6f4;
+      --shadow: 0 16px 42px rgba(31, 67, 130, .08);
+      font-family: "Segoe UI Variable", "Segoe UI", Inter, system-ui, sans-serif;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: var(--canvas); }
+    a { color: #1553d5; }
+    .topbar { background: var(--blue-dark); color: white; }
+    .topbar-inner, main { width: min(1120px, calc(100% - 36px)); margin: 0 auto; }
+    .topbar-inner { min-height: 66px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .brand { display: flex; align-items: center; gap: 11px; color: white; text-decoration: none; font-weight: 800; letter-spacing: .12em; }
+    .brand-mark { width: 35px; height: 35px; display: grid; place-items: center; border: 1px solid #6b9bff; border-radius: 11px; color: #a9dfff; }
+    .actions { display: flex; gap: 9px; }
+    .button { display: inline-flex; min-height: 38px; align-items: center; justify-content: center; padding: 8px 13px; border: 1px solid #c9d8f6; border-radius: 11px; background: white; color: #1749b0; font-size: 13px; font-weight: 750; text-decoration: none; transition: transform .18s ease, box-shadow .18s ease; }
+    .button:hover { transform: translateY(-1px); box-shadow: 0 5px 15px rgba(5, 28, 80, .16); }
+    main { padding: 30px 0 56px; }
+    .eyebrow { color: var(--blue); text-transform: uppercase; letter-spacing: .16em; font-size: 11px; font-weight: 850; }
+    h1 { margin: 8px 0 9px; font-size: clamp(29px, 4vw, 45px); letter-spacing: -.045em; line-height: 1.08; }
+    h2 { margin: 0; font-size: 20px; letter-spacing: -.025em; }
+    h3 { margin: 0 0 7px; font-size: 14px; }
+    p { margin: 0; color: var(--muted); line-height: 1.55; }
+    .hero { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); align-items: center; gap: 22px; margin-bottom: 20px; }
+    .hero-copy { padding: 24px 0; }
+    .hero-copy p { max-width: 580px; font-size: 15px; }
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 17px; }
+    .tag { border: 1px solid #d5e2ff; border-radius: 999px; background: white; color: #2450a6; padding: 7px 10px; font-size: 11px; font-weight: 750; }
+    .visual, .card { border: 1px solid var(--line); border-radius: 19px; background: var(--paper); box-shadow: var(--shadow); }
+    .visual { padding: 14px; overflow: hidden; }
+    .visual svg { display: block; width: 100%; height: auto; }
+    .callout { display: flex; gap: 11px; padding: 14px 16px; margin: 18px 0 24px; border: 1px solid #cbdcff; border-radius: 14px; background: #edf3ff; color: #234577; font-size: 13px; line-height: 1.5; }
+    .callout strong { color: #123d91; }
+    .callout-mark { flex: 0 0 23px; width: 23px; height: 23px; display: grid; place-items: center; border-radius: 50%; color: white; background: var(--blue); font-weight: 850; }
+    .section { margin-top: 22px; }
+    .section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 12px; }
+    .section-head p { max-width: 620px; font-size: 13px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .card { padding: 18px; }
+    .card p, .card li { font-size: 13px; }
+    .reader-visual { display: flex; align-items: center; gap: 14px; min-height: 86px; margin: 13px 0; padding: 12px; border: 1px solid var(--line); border-radius: 13px; background: #f8faff; }
+    .fingerprint { flex: 0 0 62px; width: 62px; height: 62px; display: grid; place-items: center; border: 1px solid #c6d8ff; border-radius: 16px; background: white; color: var(--blue); }
+    .reader-visual strong { display: block; margin-bottom: 4px; font-size: 13px; }
+    .small { font-size: 11px !important; color: var(--muted); }
+    .spec-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-top: 14px; }
+    .spec { padding: 11px; border-radius: 12px; background: #f6f9ff; border: 1px solid #e5ecf9; }
+    .spec strong { display: block; margin-bottom: 4px; font-size: 11px; }
+    .spec span { color: var(--muted); font-size: 11px; line-height: 1.4; }
+    .flow { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 9px; margin-top: 15px; }
+    .flow-step { position: relative; min-height: 100px; padding: 12px; border: 1px solid var(--line); border-radius: 13px; background: #fbfcff; }
+    .flow-step:not(:last-child)::after { content: "›"; position: absolute; right: -9px; top: 31px; z-index: 1; width: 18px; height: 22px; display: grid; place-items: center; border-radius: 50%; background: var(--blue); color: white; font-size: 18px; font-weight: 800; }
+    .flow-step b { display: block; margin-bottom: 6px; color: #1749b0; font-size: 12px; }
+    .flow-step span { display: block; color: var(--muted); font-size: 11px; line-height: 1.45; }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; background: white; }
+    table { width: 100%; border-collapse: collapse; min-width: 700px; font-size: 12px; }
+    th, td { padding: 11px 12px; border-bottom: 1px solid #e9eef7; text-align: left; vertical-align: top; }
+    th { color: #53647f; background: #f7f9fe; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+    td:last-child, th:last-child { text-align: right; white-space: nowrap; }
+    tr:last-child td { border-bottom: 0; }
+    .price-note { margin-top: 11px; font-size: 11px; }
+    .estimate { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 13px; }
+    .estimate > div { padding: 14px; border: 1px solid #d9e5fa; border-radius: 13px; background: linear-gradient(135deg, white, #f3f7ff); }
+    .estimate span { display: block; color: var(--muted); font-size: 11px; }
+    .estimate strong { display: block; margin-top: 5px; color: #123d91; font-size: 18px; }
+    .notice-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 11px; }
+    .notice-card { padding: 15px; border: 1px solid var(--line); border-radius: 14px; background: white; }
+    .notice-card h3 { color: #1749b0; }
+    .notice-card p { font-size: 12px; }
+    .sources { padding-left: 18px; columns: 2; column-gap: 28px; color: var(--muted); font-size: 11px; line-height: 1.8; }
+    .sources li { break-inside: avoid; margin-bottom: 4px; }
+    footer { display: flex; justify-content: space-between; gap: 12px; margin-top: 25px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+    @media (max-width: 780px) {
+      .hero, .grid-2 { grid-template-columns: 1fr; }
+      .hero-copy { padding: 9px 0; }
+      .flow { grid-template-columns: 1fr; }
+      .flow-step { min-height: 0; }
+      .flow-step:not(:last-child)::after { content: "↓"; top: auto; right: 12px; bottom: -14px; }
+      .notice-grid, .estimate { grid-template-columns: 1fr; }
+      .spec-grid { grid-template-columns: 1fr; }
+      .sources { columns: 1; }
+    }
+    @media (max-width: 500px) {
+      .topbar-inner { width: calc(100% - 26px); min-height: 60px; }
+      main { width: calc(100% - 26px); padding-top: 20px; }
+      .brand { font-size: 13px; }
+      .actions { gap: 6px; }
+      .button { min-height: 35px; padding: 7px 9px; font-size: 11px; }
+      .visual, .card { border-radius: 15px; }
+      .card { padding: 15px; }
+      footer { flex-direction: column; }
+    }
+    @media print {
+      @page { size: A4; margin: 14mm; }
+      body { background: white; }
+      .topbar, .actions { display: none; }
+      main { width: 100%; padding: 0; }
+      .hero { grid-template-columns: .9fr 1.1fr; }
+      .visual, .card { box-shadow: none; break-inside: avoid; }
+      .section { break-inside: avoid; }
+      a { color: inherit; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true">G</span>
+        <span>GETPASS HARDWARE</span>
+      </a>
+      <nav class="actions" aria-label="Page actions">
+        <a class="button" href="/">Back to gate</a>
+        <a class="button" href="hardware-design.pdf" download>Download PDF</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow">Concept design · R01 · 25 Nov 2026</div>
+        <h1>Two scanners.<br>One secure gate.</h1>
+        <p>A compact entry box captures Kenyan national ID, school ID, or passport images and has an integrated fingerprint reader. A second, separate fingerprint reader handles checkout.</p>
+        <div class="tags">
+          <span class="tag">Main enclosure: 150 × 150 × 150 mm</span>
+          <span class="tag">Passport support folds out to 180 mm wide</span>
+          <span class="tag">GETPASS reader API</span>
+        </div>
+      </div>
+      <div class="visual">
+        <svg viewBox="0 0 860 440" role="img" aria-labelledby="device-title device-desc">
+          <title id="device-title">GETPASS compact entry scanner concept</title>
+          <desc id="device-desc">A 150 millimetre cube document scanner with a front-mounted fingerprint reader and fold-out passport support.</desc>
+          <defs>
+            <linearGradient id="top" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f8fbff"/><stop offset="1" stop-color="#dce8ff"/></linearGradient>
+            <linearGradient id="front" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#f5f8ff"/><stop offset="1" stop-color="#dbe7ff"/></linearGradient>
+            <linearGradient id="side" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#1f58da"/><stop offset="1" stop-color="#123d91"/></linearGradient>
+            <filter id="shadow" x="-30%" y="-30%" width="170%" height="170%"><feDropShadow dx="0" dy="18" stdDeviation="13" flood-color="#173d89" flood-opacity=".15"/></filter>
+          </defs>
+          <ellipse cx="437" cy="386" rx="285" ry="25" fill="#eaf0fb"/>
+          <g filter="url(#shadow)" stroke="#184dbd" stroke-width="2.4" stroke-linejoin="round">
+            <path d="M170 190 L315 106 L653 106 L509 190 Z" fill="url(#top)"/>
+            <path d="M509 190 L653 106 L653 322 L509 405 Z" fill="url(#side)"/>
+            <path d="M170 190 L509 190 L509 405 L170 405 Z" fill="url(#front)"/>
+            <path d="M118 165 L170 190 L170 405 L118 379 Z" fill="#edf3ff" stroke-dasharray="7 6"/>
+            <path d="M118 165 L170 135 L170 190 Z" fill="#dbe7ff" stroke-dasharray="7 6"/>
+            <path d="M170 154 L315 72 L653 72 L653 106 L315 106 Z" fill="none" stroke="#90b2ff" stroke-dasharray="7 6"/>
+          </g>
+          <path d="M219 171 L325 112 L607 112 L504 171 Z" fill="#b9d1ff" stroke="#8cb1ff" stroke-width="2"/>
+          <path d="M246 160 L337 127 L574 127 L487 160 Z" fill="#fbfdff" stroke="#74a0ff" stroke-width="2"/>
+          <rect x="371" y="130" width="70" height="14" rx="7" fill="#123d91"/>
+          <circle cx="405" cy="137" r="5" fill="#31c6f4"/>
+          <circle cx="289" cy="103" r="6" fill="#31c6f4"/>
+          <rect x="434" y="281" width="53" height="70" rx="13" fill="#103b95" stroke="#8ab6ff" stroke-width="2"/>
+          <path d="M450 326 C448 314 452 301 461 299 C470 299 473 307 472 317 M455 332 C452 320 455 310 461 308 C467 308 469 315 468 324 M461 336 C458 326 459 319 463 318 C467 318 466 325 465 331" fill="none" stroke="#c8e8ff" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="197" cy="226" r="5" fill="#22c55e"/>
+          <path d="M688 155 L665 142" stroke="#175cff" stroke-width="2"/>
+          <circle cx="688" cy="155" r="4" fill="#175cff"/>
+          <text x="675" y="119" fill="#14213d" font-size="16" font-weight="700">150 mm cube</text>
+          <text x="675" y="140" fill="#62728b" font-size="12">main enclosure</text>
+          <path d="M140 174 L85 128" stroke="#175cff" stroke-width="2"/>
+          <circle cx="140" cy="174" r="4" fill="#175cff"/>
+          <text x="30" y="96" fill="#14213d" font-size="15" font-weight="700">Fold-out passport support</text>
+          <text x="30" y="116" fill="#62728b" font-size="12">extends the working surface</text>
+          <path d="M466 312 L665 260" stroke="#175cff" stroke-width="2"/>
+          <circle cx="466" cy="312" r="4" fill="#175cff"/>
+          <text x="675" y="255" fill="#14213d" font-size="15" font-weight="700">Entry fingerprint</text>
+          <text x="675" y="275" fill="#62728b" font-size="12">USB sensor, flush mounted</text>
+          <text x="349" y="93" fill="#1749b0" font-size="12" font-weight="700">DOCUMENT CAMERA + DIFFUSED LIGHT</text>
+          <text x="183" y="424" fill="#62728b" font-size="11">Concept render — not to manufacturing scale</text>
+        </svg>
+      </div>
+    </section>
+
+    <div class="callout">
+      <div class="callout-mark" aria-hidden="true">!</div>
+      <div><strong>Size constraint:</strong> the main shell stays about 150 mm on each side. An open passport is wider than a 150 mm square, so the top tray folds/slides out to provide about 180 mm of support width and 135 mm of usable capture depth. Check the tray and camera field of view against actual passports and IDs used at each site.</div>
+    </div>
+
+    <section class="section">
+      <div class="section-head">
+        <div><div class="eyebrow">Hardware layout</div><h2>Entry capture + separate checkout</h2></div>
+        <p>Keep document capture and fingerprint matching local to the gate. The cloud receives parsed fields and an opaque reader reference, not fingerprint images.</p>
+      </div>
+      <div class="grid-2">
+        <article class="card">
+          <h3>01 · Entry document box</h3>
+          <p>Place the ID or passport under the camera on a glare-controlled platen. The fingerprint reader is a recessed, flush-mounted USB unit on the front slope.</p>
+          <div class="reader-visual">
+            <div class="fingerprint" aria-hidden="true">
+              <svg width="38" height="38" viewBox="0 0 38 38" fill="none"><path d="M19 5c-7 0-12 5-12 12 0 5 1 10 3 14M19 9c-5 0-8 3-8 8 0 4 1 8 2 11M19 13c-3 0-5 2-5 5 0 4 1 7 2 10M19 5c7 0 12 5 12 12 0 6-1 11-3 15M19 9c5 0 8 3 8 8 0 5-1 9-2 12M19 13c3 0 5 2 5 5 0 4-1 7-2 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </div>
+            <div><strong>Integrated entry reader</strong><p class="small">One reader for first-time enrollment and repeat-visitor check-in. Choose a model with a supported local SDK and liveness features.</p></div>
+          </div>
+          <div class="spec-grid">
+            <div class="spec"><strong>Camera</strong><span>Autofocus 8MP+ document camera; diffuse LED; glare-safe glass.</span></div>
+            <div class="spec"><strong>Compute</strong><span>Pi 5 prototype or compact x86 host; confirm reader SDK/OS first.</span></div>
+            <div class="spec"><strong>Passport tray</strong><span>Fold-out support about 180 mm wide; ~135 mm usable capture depth.</span></div>
+          </div>
+        </article>
+        <article class="card">
+          <h3>02 · Checkout fingerprint reader</h3>
+          <p>A separate USB reader sits on the gate desk. The operator selects an active visit; the visitor scans a finger and the local bridge reports a match for the linked opaque subject reference.</p>
+          <div class="reader-visual">
+            <div class="fingerprint" aria-hidden="true">
+              <svg width="38" height="38" viewBox="0 0 38 38" fill="none"><rect x="4" y="7" width="30" height="24" rx="7" stroke="currentColor" stroke-width="2"/><path d="M19 12c-4 0-7 3-7 7 0 3 1 6 2 8M19 15c-2 0-4 2-4 4 0 3 1 5 2 7M19 12c4 0 7 3 7 7 0 4-1 6-2 8M19 15c2 0 4 2 4 4 0 3-1 5-2 7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+            </div>
+            <div><strong>Standalone exit reader</strong><p class="small">USB to the trusted gate PC/bridge. No document scan at checkout. Keep matching and templates on the reader-side system.</p></div>
+          </div>
+          <div class="spec-grid">
+            <div class="spec"><strong>Connection</strong><span>USB to local reader bridge.</span></div>
+            <div class="spec"><strong>Match</strong><span>Local verification, then send only result + reference.</span></div>
+            <div class="spec"><strong>Fallback</strong><span>Operator review if the sensor or service is unavailable.</span></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div><div class="eyebrow">Data path</div><h2>GETPASS integration</h2></div>
+        <p>The existing reader API is the integration point; vendor-specific camera parsing, SDK calls, durable offline queueing, and device certification still need implementation.</p>
+      </div>
+      <div class="card">
+        <div class="flow" aria-label="Scanner to server data flow">
+          <div class="flow-step"><b>Scan locally</b><span>OCR ID/passport fields; discard the temporary image after extraction.</span></div>
+          <div class="flow-step"><b>Verify locally</b><span>Reader performs fingerprint match and returns an opaque subject reference.</span></div>
+          <div class="flow-step"><b>Bridge POST</b><span>HTTPS POST to <code>/api/reader/verifications</code> with a per-device token.</span></div>
+          <div class="flow-step"><b>Central record</b><span>GETPASS validates, timestamps, encrypts visitor fields, and records the visit.</span></div>
+          <div class="flow-step"><b>Gate confirms</b><span>Portal reads the pending verification result and displays the central response.</span></div>
+        </div>
+        <p class="price-note">Target: show a confirmed entry only after the central API acknowledges it. During a network outage, label the event “pending sync”; do not promise zero delay or zero downtime.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div><div class="eyebrow">Budgetary estimate</div><h2>Potential prototype costs · KES</h2></div>
+        <p>Indicative single-site one-off hardware planning; get written quotes and test the exact SDK/OS combination before ordering.</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Item</th><th>Qty</th><th>Planning unit cost</th><th>Budget range</th></tr></thead>
+          <tbody>
+            <tr><td>Raspberry Pi 5 8GB board (prototype compute)</td><td>1</td><td>KES 19,500 listed</td><td>KES 19,500</td></tr>
+            <tr><td>SecuGen Hamster Pro 20 USB fingerprint reader — entry</td><td>1</td><td>KES 16,704 listed</td><td>KES 16,704</td></tr>
+            <tr><td>Autofocus document camera + mount</td><td>1</td><td>KES 4,750–10,000 allowance</td><td>KES 4,750–10,000</td></tr>
+            <tr><td>Diffuse LEDs, optical window, glass/platen and wiring</td><td>1 set</td><td>Planning allowance</td><td>KES 2,000–5,000</td></tr>
+            <tr><td>150 mm housing + fold-out passport support, prototype print</td><td>1</td><td>Planning allowance</td><td>KES 4,000–10,000</td></tr>
+            <tr><td>Power supply, cooling, storage and USB hub</td><td>1 set</td><td>Planning allowance</td><td>KES 6,000–10,000</td></tr>
+            <tr><td><strong>Entry unit subtotal</strong></td><td></td><td></td><td><strong>KES 52,954–71,204</strong></td></tr>
+            <tr><td>SecuGen Hamster Pro 20 USB fingerprint reader — checkout</td><td>1</td><td>KES 16,704 listed</td><td>KES 16,704</td></tr>
+            <tr><td>Checkout desk cradle / cable</td><td>1</td><td>Planning allowance</td><td>KES 1,000–3,000</td></tr>
+            <tr><td>LTE router / failover connection hardware</td><td>1</td><td>Planning allowance</td><td>KES 4,000–10,000</td></tr>
+            <tr><td>650VA UPS, 230V</td><td>1</td><td>KES 9,500 listed</td><td>KES 9,500</td></tr>
+            <tr><td><strong>Hardware total</strong></td><td></td><td></td><td><strong>KES 84,158–110,408</strong></td></tr>
+            <tr><td>One-off SDK/bridge integration, enclosure iteration, bench testing</td><td>1</td><td>Planning allowance</td><td>KES 25,000–70,000</td></tr>
+            <tr><td><strong>Indicative first pilot</strong></td><td></td><td>Hardware + one-time engineering</td><td><strong>KES 109,158–180,408</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="price-note">Not included: taxes/import/delivery, a separate gate monitor/PC, monthly SIM/data, cloud hosting, production tooling, warranty/spares, or commercial OCR/SDK licence fees. If the fingerprint vendor does not support Raspberry Pi/Linux, replace it with a supported compact x86 host and re-quote; allow roughly KES 10,500–35,500 extra versus the listed Pi board.</p>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><div><div class="eyebrow">Operational requirements</div><h2>Reliability, privacy and validation</h2></div></div>
+      <div class="notice-grid">
+        <article class="notice-card"><h3>No zero-downtime promise</h3><p>Use Ethernet plus 4G failover, UPS, health checks, and an encrypted durable outbox. GETPASS needs idempotent event replay before offline queueing can safely sync; neither network nor hardware can guarantee zero delay.</p></article>
+        <article class="notice-card"><h3>Protect biometrics</h3><p>Keep matching/template storage local, encrypt device storage, use unique revocable reader tokens, and never send fingerprint images/templates to the server. Review lawful basis, retention and DPIA obligations before live school use.</p></article>
+        <article class="notice-card"><h3>Prove compatibility</h3><p>Bench-test Kenyan ID and passport OCR, glare/blur, USB driver and SDK on the chosen OS, repeated check-in, checkout-to-active-visit matching, sync retries, power loss and recovery.</p></article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><div><div class="eyebrow">Price references</div><h2>Retail snapshots checked 25 Nov 2026</h2></div></div>
+      <ul class="sources">
+        <li><a href="https://nebulahub.co.ke/product/secugen-hamster-pro-20/">SecuGen Hamster Pro 20 listing — KES 16,704 each.</a></li>
+        <li><a href="https://store.nerokas.co.ke/SKU-3877">Nerokas Raspberry Pi 5 8GB listing — KES 19,500 shown in search listing.</a></li>
+        <li><a href="https://www.jumia.co.ke/slp/raspberry-pi-camera-module">Jumia camera-module listing snapshot — KES 4,750; confirm exact autofocus model.</a></li>
+        <li><a href="https://smartbuy.co.ke/product/apc-650va/">SmartBuy APC 650VA, 230V listing — KES 9,500.</a></li>
+        <li><a href="https://www.satoprints.co.ke/guides/how-much-does-3d-printing-cost-in-kenya">SatoPrints 3D-print guide — ordinary catalogue prints KES 200–5,800; custom design/fit may cost more.</a></li>
+        <li><a href="https://www.jumia.co.ke/catalog/?q=4g+lte+router">Jumia 4G router search snapshot — generic mobile hotspots from around KES 2,265; budget line above allows a sturdier unit.</a></li>
+      </ul>
+    </section>
+    <footer><span>Concept only — not certified or manufacturing-ready CAD.</span><span>Served by GETPASS; not published to Vercel.</span></footer>
+  </main>
+</body>
+</html>

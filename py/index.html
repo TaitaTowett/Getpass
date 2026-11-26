@@ -1,0 +1,1285 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#175cff">
+  <title>GETPASS</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172a26;
+      --muted: #64736e;
+      --line: #e2e9e5;
+      --paper: #ffffff;
+      --canvas: #f3f6f3;
+      --green: #176b51;
+      --green-dark: #123f37;
+      --green-soft: #e8f4ee;
+      --amber: #80550c;
+      --amber-soft: #fff3d8;
+      --red: #a33c36;
+      --shadow: 0 14px 36px rgba(27, 55, 47, .07);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--canvas); color: var(--ink); }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .topbar { background: var(--green-dark); color: white; }
+    .topbar-inner { max-width: 1240px; margin: auto; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark { width: 40px; height: 40px; border: 1px solid rgba(255,255,255,.32); border-radius: 12px; display: grid; place-items: center; font-weight: 800; color: #b7e0c8; }
+    .brand-name { font-size: 17px; font-weight: 750; letter-spacing: -.3px; }
+    .brand-caption { margin-top: 2px; font-size: 12px; color: #c1d5cd; }
+    .top-meta { display: flex; align-items: center; gap: 9px; color: #d3e2dc; font-size: 13px; }
+    main { max-width: 1240px; margin: auto; padding: 34px 28px 56px; }
+    .page-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; margin-bottom: 22px; }
+    .eyebrow { color: var(--green); text-transform: uppercase; letter-spacing: 1.3px; font-size: 11px; font-weight: 800; }
+    h1 { margin: 7px 0 5px; font-size: clamp(26px, 3vw, 34px); letter-spacing: -1.2px; line-height: 1.15; }
+    .subtitle { color: var(--muted); font-size: 14px; }
+    .demo-badge { border: 1px solid #e8d5a8; background: var(--amber-soft); color: var(--amber); border-radius: 999px; padding: 8px 12px; font-size: 12px; font-weight: 750; white-space: nowrap; }
+    .notice { display: flex; align-items: flex-start; gap: 11px; padding: 13px 15px; border: 1px solid #ecdcae; background: #fffaf0; color: #624919; border-radius: 12px; font-size: 13px; line-height: 1.5; margin-bottom: 22px; }
+    .notice strong { color: #49360f; }
+    .notice-icon { font-weight: 900; color: #a77816; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 22px; }
+    .stat { border: 1px solid var(--line); background: var(--paper); border-radius: 14px; padding: 17px 19px; box-shadow: 0 3px 12px rgba(27,55,47,.025); }
+    .stat-label { color: var(--muted); font-size: 12px; font-weight: 650; }
+    .stat-value { margin-top: 7px; font-size: 27px; font-weight: 780; letter-spacing: -.8px; }
+    .workspace { display: grid; grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr); gap: 20px; align-items: start; }
+    .card { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; }
+    .card-heading { padding: 19px 21px 16px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .card-heading h2 { margin: 0; font-size: 16px; letter-spacing: -.25px; }
+    .card-heading p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+    .card-body { padding: 19px 21px 21px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px 12px; }
+    .field { min-width: 0; }
+    .field.wide { grid-column: 1 / -1; }
+    label { display: block; margin-bottom: 6px; color: #40524c; font-size: 12px; font-weight: 700; }
+    input, select, textarea { width: 100%; border: 1px solid #dce5df; border-radius: 9px; padding: 10px 11px; min-height: 41px; background: #fff; color: var(--ink); outline: none; }
+    input:focus, select:focus, textarea:focus { border-color: #52a580; box-shadow: 0 0 0 3px rgba(42,132,91,.12); }
+    input::placeholder { color: #9aa8a2; }
+    .reader-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 15px; padding: 11px 12px; background: #f5f8f6; border: 1px solid #e8eeea; border-radius: 10px; }
+    .reader-title { font-size: 12px; font-weight: 750; }
+    .reader-state { margin-top: 3px; font-size: 11px; color: var(--muted); }
+    .reader-state.ok { color: var(--green); font-weight: 700; }
+    .button { border: 0; border-radius: 9px; padding: 10px 13px; font-size: 12px; font-weight: 750; transition: background .15s, transform .15s; }
+    .button:active { transform: translateY(1px); }
+    .button-primary { background: var(--green); color: white; }
+    .button-primary:hover { background: #12563f; }
+    .button-outline { border: 1px solid #cddbd3; color: #315548; background: white; }
+    .button-outline:hover { background: var(--green-soft); }
+    .button-small { padding: 8px 10px; white-space: nowrap; }
+    .button:disabled { opacity: .55; cursor: not-allowed; }
+    .auth-card { max-width: 470px; margin: 22px auto 0; }
+    .intro { max-width: 760px; margin: 8px auto 0; text-align: center; }
+    .intro p { color: var(--muted); line-height: 1.5; margin: 9px auto 0; max-width: 650px; }
+    .facility-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .facility-choice { min-height: 45px; border: 1px solid #cddbd3; border-radius: 9px; background: white; color: #315548; font-size: 13px; font-weight: 750; }
+    .facility-choice[aria-pressed="true"] { border-color: var(--green); background: var(--green-soft); color: var(--green-dark); box-shadow: 0 0 0 2px rgba(42,132,91,.12); }
+    .auth-help { color: var(--muted); font-size: 12px; line-height: 1.5; margin-top: 12px; }
+    .auth-fields { display: grid; gap: 13px; }
+    .top-meta .button { border: 1px solid rgba(255,255,255,.3); color: white; background: transparent; padding: 7px 10px; }
+    .top-meta .button:hover { background: rgba(255,255,255,.1); }
+    .privacy-check { display: flex; align-items: flex-start; gap: 9px; margin-top: 14px; color: #53645d; font-size: 11px; line-height: 1.45; }
+    .privacy-check input { flex: 0 0 15px; width: 15px; height: 15px; min-height: 15px; margin: 1px 0 0; accent-color: var(--green); }
+    .form-actions { display: flex; align-items: center; gap: 12px; margin-top: 15px; }
+    .form-message { min-height: 17px; color: var(--muted); font-size: 12px; }
+    .form-message.error { color: var(--red); }
+    .form-message.success { color: var(--green); }
+    .scanner-demo { margin-bottom: 14px; padding: 11px 12px; border: 1px dashed #d9e3dc; background: #fafcfb; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .scanner-copy { font-size: 12px; line-height: 1.45; color: var(--muted); }
+    .scanner-copy strong { color: #40564c; display: block; font-size: 12px; margin-bottom: 2px; }
+    .visit-list { display: grid; }
+    .visit-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; padding: 14px 20px; border-bottom: 1px solid #edf1ee; }
+    .visit-row:last-child { border-bottom: 0; }
+    .visit-name { font-weight: 750; font-size: 13px; }
+    .visit-meta { margin-top: 4px; color: var(--muted); font-size: 11px; line-height: 1.45; }
+    .visit-time { text-align: right; color: #5d7068; font-size: 11px; white-space: nowrap; }
+    .visit-status { display: inline-block; margin-top: 6px; padding: 3px 7px; border-radius: 20px; background: var(--green-soft); color: var(--green); font-size: 10px; font-weight: 750; }
+    .visit-status.out { background: #f0f2f1; color: #65726d; }
+    .empty { color: var(--muted); text-align: center; padding: 34px 18px; font-size: 13px; }
+    .list-footer { padding: 11px 20px; color: var(--muted); background: #fbfcfb; border-top: 1px solid var(--line); font-size: 11px; }
+    .section-gap { margin-top: 20px; }
+    .school-workflows { margin-top: 22px; }
+    .student-grid { display: grid; grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr); gap: 20px; align-items: start; }
+    .student-list { display: grid; }
+    .student-row { padding: 13px 20px; border-bottom: 1px solid #edf1ee; }
+    .student-row:last-child { border-bottom: 0; }
+    .student-row-heading { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+    .guardian-list { display: grid; gap: 6px; margin-top: 9px; color: var(--muted); font-size: 11px; }
+    .movement-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; padding: 13px 20px; border-bottom: 1px solid #edf1ee; }
+    .movement-row:last-child { border-bottom: 0; }
+    .approval-check { display: flex; align-items: flex-start; gap: 9px; margin-top: 14px; color: #53645d; font-size: 12px; line-height: 1.45; }
+    .approval-check input { flex: 0 0 16px; width: 16px; height: 16px; min-height: 16px; margin: 1px 0 0; accent-color: var(--green); }
+    .form-separator { border: 0; border-top: 1px solid var(--line); margin: 20px 0; }
+    .checkout-form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .checkout-form .wide { grid-column: 1/-1; }
+    footer { padding: 18px 0 0; color: #819089; text-align: center; font-size: 11px; line-height: 1.5; }
+    @media (max-width: 900px) { .workspace { grid-template-columns: 1fr; } }
+    @media (max-width: 900px) { .student-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 600px) {
+      .topbar-inner, main { padding-left: 17px; padding-right: 17px; }
+      main { padding-top: 24px; }
+      .top-meta { font-size: 11px; }
+      .page-heading { align-items: flex-start; flex-direction: column; }
+      .stats { gap: 8px; }
+      .stat { padding: 13px; }
+      .stat-label { font-size: 10px; }
+      .stat-value { font-size: 22px; }
+      .card-heading, .card-body { padding-left: 15px; padding-right: 15px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .field.wide { grid-column: auto; }
+      .checkout-form { grid-template-columns: 1fr; }
+      .checkout-form .wide { grid-column: auto; }
+      .visit-row { padding-left: 15px; padding-right: 15px; }
+    }
+    :root {
+      color-scheme: light;
+      --ink: #14213d;
+      --muted: #65748c;
+      --line: #dce5f2;
+      --paper: #ffffff;
+      --canvas: #f5f8fe;
+      --green: #175cff;
+      --green-dark: #123d91;
+      --green-soft: #edf3ff;
+      --amber: #1749b0;
+      --amber-soft: #edf3ff;
+      --red: #b42336;
+      --shadow: 0 12px 32px rgba(31, 67, 130, .07);
+      font-family: "Segoe UI Variable", Inter, ui-sans-serif, system-ui, sans-serif;
+    }
+    body {
+      min-height: 100vh;
+      background: var(--canvas);
+      color: var(--ink);
+    }
+    .topbar {
+      background: #ffffff;
+      border-bottom: 1px solid var(--line);
+    }
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      border: 0;
+      border-radius: 13px;
+      color: #ffffff;
+      background: linear-gradient(145deg, #2874ff, #104bd8);
+      box-shadow: 0 5px 14px rgba(23, 92, 255, .2);
+    }
+    .brand-mark svg { display: block; width: 25px; height: 25px; }
+    .brand-name { color: #14213d; letter-spacing: .12em; }
+    .top-meta { color: #52627c; }
+    main { padding-top: 30px; }
+    h1 { letter-spacing: -.045em; }
+    .eyebrow { color: var(--green); letter-spacing: .18em; }
+    .subtitle, .intro p { color: var(--muted); }
+    .demo-badge {
+      color: #184dbd;
+      border-color: #cddcff;
+      background: var(--amber-soft);
+      box-shadow: none;
+    }
+    .notice {
+      color: #264575;
+      border-color: #d5e2ff;
+      background: #f0f5ff;
+    }
+    .notice strong, .notice-icon { color: #175cff; }
+    .stat, .card {
+      background: #ffffff;
+      border-color: var(--line);
+      box-shadow: var(--shadow);
+      backdrop-filter: none;
+    }
+    .stat { border-radius: 16px; }
+    .stat-label, .card-heading p, .reader-state, .visit-meta, .guardian-list, .visit-time { color: var(--muted); }
+    .stat-value { color: #14213d; }
+    .card { border-radius: 18px; }
+    .card-heading { border-color: var(--line); }
+    .card-heading h2, .reader-title, .scanner-copy strong { color: var(--ink); }
+    .form-grid { gap: 16px 14px; }
+    label { color: #40516f; font-size: 12px; letter-spacing: .015em; }
+    input, select, textarea {
+      min-height: 46px;
+      padding: 11px 13px;
+      color: #14213d;
+      border: 1px solid #d5deec;
+      border-radius: 12px;
+      background: #ffffff;
+      box-shadow: none;
+      transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease, background .2s ease;
+    }
+    select option { color: #14213d; background: #ffffff; }
+    input:hover, select:hover, textarea:hover { border-color: #9ab8ff; }
+    input:focus, select:focus, textarea:focus {
+      border-color: #175cff;
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(23, 92, 255, .12);
+      transform: translateY(-1px);
+    }
+    input::placeholder, textarea::placeholder { color: #8997ad; }
+    input[type="checkbox"] { accent-color: var(--green); }
+    .reader-row, .scanner-demo {
+      border: 1px solid #dce7fa;
+      border-radius: 13px;
+      background: #f6f9ff;
+    }
+    .scanner-demo { border-style: solid; }
+    .scanner-copy { color: var(--muted); }
+    .scanner-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+    .button, .facility-choice {
+      border-radius: 13px;
+      font-weight: 700;
+      letter-spacing: .01em;
+      transition: transform .18s ease, border-color .18s ease, color .18s ease, background .18s ease, box-shadow .18s ease, filter .18s ease;
+    }
+    .button:hover:not(:disabled), .facility-choice:hover {
+      transform: translateY(-2px);
+      filter: brightness(.98);
+    }
+    .button:active:not(:disabled), .facility-choice:active { transform: translateY(0) scale(.985); }
+    .button-primary {
+      color: #ffffff;
+      background: #175cff;
+      box-shadow: 0 6px 16px rgba(23, 92, 255, .2);
+    }
+    .button-primary:hover:not(:disabled) {
+      background: #104bd8;
+      box-shadow: 0 8px 20px rgba(23, 92, 255, .24);
+    }
+    .button-outline, .facility-choice {
+      color: #1749b0;
+      border: 1px solid #c9d8f6;
+      background: #ffffff;
+    }
+    .button-outline:hover:not(:disabled), .facility-choice:hover {
+      color: #123d91;
+      border-color: #91b1ff;
+      background: #f1f5ff;
+      box-shadow: 0 3px 12px rgba(23, 92, 255, .08);
+    }
+    .facility-choice { min-height: 48px; }
+    .facility-choice[aria-pressed="true"] {
+      color: #123d91;
+      border-color: #175cff;
+      background: #edf3ff;
+      box-shadow: 0 0 0 2px rgba(23, 92, 255, .1);
+    }
+    .button:focus-visible, .facility-choice:focus-visible {
+      outline: 2px solid #175cff;
+      outline-offset: 3px;
+    }
+    .top-meta .button { color: #1749b0; border-color: #c9d8f6; }
+    .top-meta a.button { display: inline-flex; align-items: center; text-decoration: none; }
+    .top-meta .button:hover { background: #edf3ff; }
+    .form-message { color: var(--muted); }
+    .form-message.error { color: var(--red); }
+    .form-message.success, .reader-state.ok { color: var(--green); }
+    .visit-row, .student-row, .movement-row { border-color: #e8edf5; }
+    .visit-row:hover, .student-row:hover, .movement-row:hover { background: #f7f9ff; }
+    .visit-name { color: #14213d; }
+    .visit-status { color: #1749b0; background: #edf3ff; }
+    .visit-status.out { color: #65748c; background: #f1f3f7; }
+    .list-footer { color: var(--muted); border-color: var(--line); background: #f8faff; }
+    .form-separator { border-color: var(--line); }
+    .privacy-check, .approval-check { color: #52627c; }
+    footer { color: #77869c; }
+    ::selection { color: #ffffff; background: #175cff; }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    }
+    body.signed-in .intro { display: none; }
+    body.signed-in main { padding-top: 22px; }
+    .top-meta { flex-wrap: wrap; justify-content: flex-end; }
+    #staff-name { max-width: 34vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .page-heading { align-items: center; margin-bottom: 18px; }
+    .page-heading h1 { margin-top: 5px; font-size: clamp(28px, 3.2vw, 36px); }
+    .stats { gap: 12px; }
+    .stat { min-height: 92px; }
+    .stat:first-child { border-top: 3px solid #175cff; background: #f7f9ff; }
+    .stat-value { font-size: 30px; }
+    .workspace, .student-grid { gap: 16px; }
+    .card { border-radius: 16px; box-shadow: 0 8px 24px rgba(31, 67, 130, .055); }
+    .card-heading { background: #fbfcff; }
+    .card-heading h2 { font-size: 16px; }
+    .card-body { padding-top: 20px; padding-bottom: 20px; }
+    .scanner-demo { align-items: center; }
+    .button { min-height: 40px; }
+    .button-small { min-height: 36px; }
+    .form-actions .button-primary { min-height: 44px; padding-right: 17px; padding-left: 17px; }
+    #checkout-form { display: grid; gap: 3px; }
+    .visit-list { max-height: 600px; overflow-y: auto; overscroll-behavior: contain; }
+    .visit-status { padding: 4px 8px; }
+    @media (max-width: 1080px) {
+      .workspace, .student-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .topbar-inner { align-items: flex-start; flex-direction: column; gap: 12px; }
+      .top-meta { width: 100%; justify-content: flex-start; font-size: 11px; }
+      #staff-name { max-width: 100%; white-space: normal; }
+      .stat { min-height: 78px; padding: 12px; }
+      .stat-label { font-size: 10px; line-height: 1.35; }
+      .stat-value { font-size: 24px; }
+      .visit-row { grid-template-columns: 1fr; gap: 8px; padding-left: 15px; padding-right: 15px; }
+      .visit-time { text-align: left; }
+      .scanner-demo { align-items: flex-start; flex-direction: column; }
+      .scanner-actions { justify-content: flex-start; }
+    }
+    details.card > summary { cursor: pointer; list-style: none; }
+    details.card > summary::-webkit-details-marker { display: none; }
+    details.card > summary::after {
+      content: "Expand";
+      flex: 0 0 auto;
+      margin-left: 12px;
+      color: #1749b0;
+      font-size: 11px;
+      font-weight: 750;
+    }
+    details.card[open] > summary::after { content: "Close"; }
+    .student-row { display: grid; gap: 7px; }
+    .student-row-heading { align-items: center; }
+    .student-session-meta { color: var(--muted); font-size: 11px; }
+    .guardian-details { color: var(--muted); font-size: 11px; }
+    .guardian-details > summary { color: #1749b0; cursor: pointer; font-weight: 700; }
+    .guardian-list { gap: 8px; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 4.5h11.5L22 9v14.5H6z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M17.5 4.5V9H22M9.5 13h8M9.5 16.5h5.5M9.5 20h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="m17 18 1.8 1.8L22.5 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-name">GETPASS</div>
+        </div>
+      </div>
+      <div class="top-meta"><a class="button" href="/hardware-design">Scanner design</a><span id="connection-label">Central service</span><span id="staff-name" hidden></span><button class="button" type="button" id="logout-button" hidden>Sign out</button></div>
+    </div>
+  </header>
+  <main>
+    <section class="intro" aria-labelledby="product-heading">
+      <h1 id="product-heading">GETPASS</h1>
+      <p>Securely record facility entry, exit, and authorized student pickup.</p>
+    </section>
+    <section class="card auth-card" id="login-panel" aria-labelledby="login-heading">
+      <div class="card-heading"><div><h2 id="login-heading">Sign in</h2><p>Authorized gate operators only.</p></div></div>
+      <div class="card-body">
+        <form id="login-form" class="auth-fields">
+          <div class="field">
+            <label>Facility ownership</label>
+            <div class="facility-choices" role="group" aria-label="Facility ownership">
+              <button class="facility-choice" type="button" data-sector="public" aria-pressed="false">Public facility</button>
+              <button class="facility-choice" type="button" data-sector="private" aria-pressed="false">Private / religious</button>
+            </div>
+          </div>
+          <div class="field"><label for="facility-type">Facility type</label><select id="facility-type" name="facility_type" required disabled><option value="">Choose public or private first</option></select></div>
+          <div class="field"><label for="facility-slug">Facility code</label><input id="facility-slug" name="facility_slug" required maxlength="64" autocomplete="organization" placeholder="e.g. demo-school"></div>
+          <div class="field"><label for="staff-email">Operator email</label><input id="staff-email" name="email" type="email" required maxlength="254" autocomplete="username"></div>
+          <div class="field"><label for="staff-password">Password</label><input id="staff-password" name="password" type="password" required maxlength="128" autocomplete="current-password"></div>
+          <div class="form-actions"><button class="button button-primary" type="submit">Sign in</button><div class="form-message" id="login-message" role="status" aria-live="polite"></div></div>
+        </form>
+        <p class="auth-help">Sign-in protects personal details and records who approves each student release.</p>
+      </div>
+    </section>
+    <div id="protected-content" hidden>
+    <div class="page-heading">
+      <div>
+        <div class="eyebrow">Gate desk</div>
+        <h1>Gate desk</h1>
+      </div>
+      <div class="demo-badge" id="mode-badge">READER STATUS</div>
+    </div>
+
+    <section class="stats" aria-label="Gate activity">
+      <div class="stat"><div class="stat-label">On site</div><div class="stat-value" id="stat-active">—</div></div>
+      <div class="stat"><div class="stat-label">Entries today</div><div class="stat-value" id="stat-arrivals">—</div></div>
+      <div class="stat"><div class="stat-label">Exits today</div><div class="stat-value" id="stat-departures">—</div></div>
+    </section>
+
+    <div class="workspace">
+      <div>
+        <section class="card" aria-labelledby="checkin-heading">
+          <div class="card-heading">
+            <div><h2 id="checkin-heading">Check in</h2></div>
+          </div>
+          <div class="card-body">
+            <div class="scanner-demo">
+              <div class="scanner-copy"><strong>ID + fingerprint check-in</strong></div>
+              <div class="scanner-actions">
+                <button class="button button-outline button-small" type="button" id="sample-scan">Test ID scan</button>
+                <button class="button button-outline button-small" type="button" id="sample-returning" hidden>Test returning fingerprint</button>
+              </div>
+            </div>
+            <form id="checkin-form">
+              <div class="form-grid">
+                <div class="field wide"><label for="full-name">Visitor name</label><input id="full-name" name="full_name" maxlength="100" required placeholder="Full name" autocomplete="off"></div>
+                <div class="field wide"><label for="visitor-type">Pass type</label><select id="visitor-type" name="visitor_type"><option value="general">Visitor</option><option value="parent_guardian">Parent / guardian</option><option value="event_guest">Event guest</option><option value="contractor">Contractor</option><option value="delivery">Delivery</option></select></div>
+                <div class="field"><label for="document-type">Document type</label><select id="document-type" name="document_type"><option>Kenyan ID</option><option>Passport</option></select></div>
+                <div class="field"><label for="document-number">ID / passport no.</label><input id="document-number" name="document_number" maxlength="32" required placeholder="Scanned from ID or entered" autocomplete="off"></div>
+                <div class="field"><label for="phone">Phone number (optional)</label><input id="phone" name="phone" maxlength="24" placeholder="+254…" autocomplete="off"></div>
+                <div class="field"><label for="host">Person or office to visit</label><input id="host" name="host" maxlength="100" required placeholder="Staff member or office" autocomplete="off"></div>
+                <div class="field wide"><label for="purpose">Visit purpose</label><input id="purpose" name="purpose" maxlength="200" required placeholder="Meeting, delivery, parent visit…" autocomplete="off"></div>
+              </div>
+              <div class="reader-row">
+                <div><div class="reader-title">Fingerprint match</div><div class="reader-state" id="checkin-reader-status" aria-live="polite">Ready</div></div>
+                <button class="button button-outline button-small reader-button" type="button" id="checkin-match">Scan</button>
+              </div>
+              <label class="privacy-check"><input id="privacy-ack" type="checkbox" required><span>Privacy notice provided</span></label>
+              <div class="form-actions"><button class="button button-primary" type="submit">Record check-in</button><div class="form-message" id="checkin-message" role="status" aria-live="polite"></div></div>
+            </form>
+          </div>
+        </section>
+
+        <section class="card section-gap" aria-labelledby="checkout-heading">
+          <div class="card-heading">
+            <div><h2 id="checkout-heading">Check out</h2></div>
+          </div>
+          <div class="card-body">
+            <form id="checkout-form">
+              <div class="field"><label for="checkout-visit">Visitor</label><select id="checkout-visit" name="visit_id" required></select></div>
+              <div class="reader-row">
+                <div><div class="reader-title">Fingerprint scanner only</div><div class="reader-state" id="checkout-reader-status" aria-live="polite">Select a visitor</div></div>
+                <button class="button button-outline button-small reader-button" type="button" id="checkout-match">Scan fingerprint</button>
+              </div>
+              <div class="form-actions"><button class="button button-primary" type="submit">Record check-out</button><div class="form-message" id="checkout-message" role="status" aria-live="polite"></div></div>
+            </form>
+          </div>
+        </section>
+      </div>
+
+      <section class="card" aria-labelledby="activity-heading">
+        <div class="card-heading">
+          <div><h2 id="activity-heading">Recent activity</h2></div>
+          <button class="button button-outline button-small" type="button" id="refresh-button">Refresh</button>
+        </div>
+        <div class="visit-list" id="visit-list" aria-live="polite"><div class="empty">Loading visitor activity…</div></div>
+        <div class="list-footer">ID numbers are encrypted at rest; full numbers are shown only to gate staff.</div>
+      </section>
+    </div>
+    <section class="school-workflows" id="school-workflows" hidden aria-labelledby="school-heading">
+      <div class="page-heading">
+        <div>
+          <div class="eyebrow">School gate passes</div>
+          <h2 id="school-heading">Student gate</h2>
+        </div>
+      </div>
+      <div class="student-grid">
+        <div>
+          <section class="card" aria-labelledby="arrival-heading">
+            <div class="card-heading"><div><h2 id="arrival-heading">Student arrival check-in</h2></div></div>
+            <div class="card-body">
+              <form id="student-arrival-form">
+                <div class="form-grid">
+                  <div class="field wide"><label for="arrival-student">Student</label><select id="arrival-student" name="student_id" required></select></div>
+                  <div class="field"><label for="arrival-context">Arrival context</label><select id="arrival-context" name="arrival_context"><option value="guardian">Parent / guardian</option><option value="school_bus">School bus</option><option value="staff">School staff</option><option value="other">Other</option></select></div>
+                  <div class="field"><label for="arrival-accompanied-by">Accompanied by (optional)</label><input id="arrival-accompanied-by" name="accompanied_by" maxlength="100"></div>
+                  <div class="field wide"><label for="arrival-note">Note (optional)</label><input id="arrival-note" name="note" maxlength="200"></div>
+                </div>
+                <div class="form-actions"><button class="button button-primary" type="submit">Check student in</button><div class="form-message" id="arrival-message" role="status" aria-live="polite"></div></div>
+              </form>
+            </div>
+          </section>
+
+          <details class="card section-gap" aria-labelledby="departure-heading">
+            <summary class="card-heading"><div><h2 id="departure-heading">Student check-out</h2><p>Verify an authorized guardian at the gate.</p></div></summary>
+            <div class="card-body">
+              <form id="student-departure-form">
+                <div class="form-grid">
+                  <div class="field wide"><label for="departure-student">Student</label><select id="departure-student" required></select></div>
+                  <div class="field"><label for="guardian-document-type">Guardian document type</label><select id="guardian-document-type"><option>Kenyan ID</option><option>Passport</option></select></div>
+                  <div class="field"><label for="guardian-document-number">Guardian ID / passport number</label><input id="guardian-document-number" maxlength="32" required autocomplete="off"></div>
+                  <div class="field wide"><label for="departure-note">Release note (optional)</label><input id="departure-note" maxlength="200"></div>
+                </div>
+                <div class="reader-row">
+                  <div><div class="reader-title">Guardian fingerprint reader</div><div class="reader-state" id="student-exit-reader-status" aria-live="polite">No verification recorded</div></div>
+                  <button class="button button-outline button-small reader-button" type="button" id="student-exit-match">Verify guardian</button>
+                </div>
+                <label class="approval-check"><input id="operator-release-approval" type="checkbox" required><span>I confirm the guardian is listed for this student, identity verification succeeded, and I approve this release.</span></label>
+                <div class="form-actions"><button class="button button-primary" type="submit">Approve and record departure</button><div class="form-message" id="departure-message" role="status" aria-live="polite"></div></div>
+              </form>
+              </div>
+            </details>
+
+        </div>
+
+        <div>
+          <section class="card" aria-labelledby="student-status-heading">
+            <div class="card-heading">
+              <div><h2 id="student-status-heading">Student status</h2><p id="student-status-summary" aria-live="polite">Loading student status…</p></div>
+              <button class="button button-outline button-small" type="button" id="refresh-school-button">Refresh</button>
+            </div>
+            <div class="student-list" id="student-list" aria-live="polite"><div class="empty">Loading student status…</div></div>
+            <div class="list-footer">Status updates from the latest arrival or authorized check-out.</div>
+          </section>
+        </div>
+      </div>
+      <details class="card section-gap" id="roster-management" hidden aria-labelledby="roster-heading">
+        <summary class="card-heading"><div><h2 id="roster-heading">Manage student roster</h2><p>Add students and authorized guardians.</p></div></summary>
+        <div class="card-body">
+          <form id="student-create-form">
+            <div class="form-grid">
+              <div class="field"><label for="new-student-name">Student full name</label><input id="new-student-name" name="full_name" maxlength="100" required></div>
+              <div class="field"><label for="new-student-admission">Adm/Reg No.</label><input id="new-student-admission" name="admission_number" maxlength="32" required autocomplete="off"></div>
+              <div class="field"><label for="new-student-class">Class / grade</label><input id="new-student-class" name="class_name" maxlength="40" required></div>
+            </div>
+            <div class="form-actions"><button class="button button-outline" type="submit">Add student</button><div class="form-message" id="student-create-message" role="status" aria-live="polite"></div></div>
+          </form>
+          <hr class="form-separator">
+          <form id="guardian-create-form">
+            <div class="form-grid">
+              <div class="field wide"><label for="guardian-student">Student</label><select id="guardian-student" required></select></div>
+              <div class="field"><label for="new-guardian-name">Guardian full name</label><input id="new-guardian-name" name="full_name" maxlength="100" required></div>
+              <div class="field"><label for="new-guardian-relationship">Relationship</label><input id="new-guardian-relationship" name="relationship" maxlength="40" required placeholder="Parent, aunt, caregiver"></div>
+              <div class="field"><label for="new-guardian-document-type">Document type</label><select id="new-guardian-document-type"><option>Kenyan ID</option><option>Passport</option></select></div>
+              <div class="field"><label for="new-guardian-document-number">ID / passport number</label><input id="new-guardian-document-number" maxlength="32" required autocomplete="off"></div>
+            </div>
+            <div class="form-actions"><button class="button button-outline" type="submit">Authorize guardian</button><div class="form-message" id="guardian-create-message" role="status" aria-live="polite"></div></div>
+          </form>
+        </div>
+      </details>
+    </section>
+    <footer>Fingerprint templates stay on the reader.</footer>
+    </div>
+  </main>
+  <script>
+    const loginForm = document.getElementById("login-form");
+    const checkinForm = document.getElementById("checkin-form");
+    const checkoutForm = document.getElementById("checkout-form");
+    const arrivalForm = document.getElementById("student-arrival-form");
+    const departureForm = document.getElementById("student-departure-form");
+    const studentCreateForm = document.getElementById("student-create-form");
+    const guardianCreateForm = document.getElementById("guardian-create-form");
+    const protectedContent = document.getElementById("protected-content");
+    let csrfToken = "";
+    let readerMode = "device";
+    let checkinVerificationId = "";
+    let checkoutVerificationId = "";
+    let studentExitVerificationId = "";
+    let sessionGeneration = 0;
+    const DEMO_RETURNING_SUBJECT_REF = "mock-returning-visitor-012345";
+    const facilityTypeOptions = {
+      public: [
+        ["public_ministry", "Ministry / state entity"],
+        ["public_hospital", "Public hospital"],
+        ["public_school", "Public school"]
+      ],
+      private: [
+        ["private_school", "Private / religious school"],
+        ["private_hospital", "Private / religious hospital"]
+      ]
+    };
+
+    function showMessage(element, text, kind) {
+      element.textContent = text;
+      element.className = `form-message ${kind || ""}`;
+    }
+
+    function responseError(result) {
+      if (typeof result.detail === "string") return result.detail;
+      if (Array.isArray(result.detail)) return result.detail.map((item) => item.msg).join("; ");
+      return result.error || "The request could not be completed.";
+    }
+
+    async function jsonRequest(path, options) {
+      const response = await fetch(path, { cache: "no-store", credentials: "same-origin", ...options });
+      if (response.status === 204) return { response, result: null };
+      const result = await response.json();
+      if (!response.ok) throw new Error(responseError(result));
+      return { response, result };
+    }
+
+    function setSignedIn(data) {
+      sessionGeneration += 1;
+      csrfToken = data.csrf_token;
+      document.body.classList.add("signed-in");
+      document.getElementById("login-panel").hidden = true;
+      protectedContent.hidden = false;
+      document.getElementById("staff-name").textContent = `${data.user.name} · ${data.facility.name}`;
+      document.getElementById("staff-name").hidden = false;
+      document.getElementById("logout-button").hidden = false;
+      document.getElementById("connection-label").textContent = "Central service connected";
+      const schoolEnabled = ["public_school", "private_school"].includes(data.facility.facility_type);
+      document.getElementById("school-workflows").hidden = !schoolEnabled;
+      document.getElementById("roster-management").hidden = data.user.role !== "facility_admin";
+      refreshVisits();
+    }
+
+    function setSignedOut() {
+      sessionGeneration += 1;
+      csrfToken = "";
+      document.body.classList.remove("signed-in");
+      checkinVerificationId = "";
+      checkoutVerificationId = "";
+      studentExitVerificationId = "";
+      for (const form of [checkinForm, checkoutForm, arrivalForm, departureForm, studentCreateForm, guardianCreateForm]) {
+        form.reset();
+      }
+      protectedContent.querySelectorAll(".form-message").forEach((message) => {
+        message.textContent = "";
+        message.className = "form-message";
+      });
+      for (const [id, text] of [
+        ["checkin-reader-status", "Ready"],
+        ["checkout-reader-status", "Select a visitor"],
+        ["student-exit-reader-status", "No verification recorded"]
+      ]) {
+        const status = document.getElementById(id);
+        status.textContent = text;
+        status.classList.remove("ok");
+      }
+      document.getElementById("checkout-visit").replaceChildren(new Option("No visitors on site", ""));
+      for (const id of ["arrival-student", "departure-student", "guardian-student"]) {
+        document.getElementById(id).replaceChildren(new Option("Select a student", ""));
+      }
+      document.getElementById("stat-active").textContent = "—";
+      document.getElementById("stat-arrivals").textContent = "—";
+      document.getElementById("stat-departures").textContent = "—";
+      document.getElementById("visit-list").replaceChildren();
+      document.getElementById("student-list").replaceChildren();
+      document.getElementById("student-status-summary").textContent = "Loading student status…";
+      protectedContent.hidden = true;
+      document.getElementById("school-workflows").hidden = true;
+      document.getElementById("login-panel").hidden = false;
+      document.getElementById("staff-name").hidden = true;
+      document.getElementById("logout-button").hidden = true;
+      document.getElementById("connection-label").textContent = "Sign in";
+    }
+
+    async function postJson(path, values) {
+      return jsonRequest(path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
+        body: JSON.stringify(values)
+      });
+    }
+
+    document.querySelectorAll(".facility-choice").forEach((button) => {
+      button.addEventListener("click", () => {
+        const options = facilityTypeOptions[button.dataset.sector];
+        document.querySelectorAll(".facility-choice").forEach((choice) => {
+          choice.setAttribute("aria-pressed", String(choice === button));
+        });
+        const select = document.getElementById("facility-type");
+        select.replaceChildren(new Option("Choose facility type", ""));
+        for (const [value, label] of options) select.add(new Option(label, value));
+        select.disabled = false;
+        select.value = "";
+      });
+    });
+
+    async function loadConfiguration() {
+      try {
+        const { result } = await jsonRequest("/api/config");
+        readerMode = result.reader_mode;
+        const badge = document.getElementById("mode-badge");
+        badge.textContent = readerMode === "mock" ? "TEST SCANNER" : "READER ONLINE";
+        document.querySelectorAll(".reader-button").forEach((button) => {
+          if (button.id === "checkin-match") {
+            button.textContent = readerMode === "mock" ? "Test ID + fingerprint" : "Scan ID + fingerprint";
+          }
+          if (readerMode === "mock" && button.id === "checkout-match") button.textContent = "Test fingerprint";
+          if (readerMode === "mock" && button.id === "student-exit-match") button.textContent = "Test guardian";
+        });
+        document.getElementById("sample-scan").hidden = readerMode !== "mock";
+        document.getElementById("sample-returning").hidden = readerMode !== "mock";
+      } catch (error) {
+        document.getElementById("connection-label").textContent = "Backend unavailable";
+      }
+    }
+
+    async function restoreSession() {
+      try {
+        const { result } = await jsonRequest("/api/auth/session");
+        if (!result) {
+          setSignedOut();
+          return;
+        }
+        setSignedIn(result);
+      } catch {
+        setSignedOut();
+      }
+    }
+
+    loginForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const message = document.getElementById("login-message");
+      if (!document.getElementById("facility-type").value) {
+        showMessage(message, "Choose a facility type.", "error");
+        return;
+      }
+      const values = Object.fromEntries(new FormData(loginForm).entries());
+      try {
+        const { result } = await jsonRequest("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(values)
+        });
+        setSignedIn(result);
+        showMessage(message, "", "");
+        document.getElementById("staff-password").value = "";
+      } catch (error) {
+        showMessage(message, error.message, "error");
+      }
+    });
+
+    document.getElementById("logout-button").addEventListener("click", async () => {
+      try {
+        await postJson("/api/auth/logout", {});
+        setSignedOut();
+      } catch (error) {
+        showMessage(document.getElementById("login-message"), `Could not sign out: ${error.message}`, "error");
+      }
+    });
+
+    document.getElementById("sample-scan").addEventListener("click", () => {
+      document.getElementById("full-name").value = "Demo Visitor";
+      document.getElementById("visitor-type").value = "parent_guardian";
+      document.getElementById("document-type").value = "Kenyan ID";
+      document.getElementById("document-number").value = "SAMPLE001";
+      document.getElementById("phone").value = "";
+      document.getElementById("host").value = "Front office";
+      document.getElementById("purpose").value = "Test visit";
+      document.getElementById("privacy-ack").checked = true;
+      checkinVerificationId = "";
+      document.getElementById("checkin-reader-status").textContent = "No verification recorded";
+      document.getElementById("checkin-reader-status").classList.remove("ok");
+      showMessage(document.getElementById("checkin-message"), "Fictional sample details loaded.", "");
+    });
+
+    document.getElementById("sample-returning").addEventListener("click", async () => {
+      const button = document.getElementById("sample-returning");
+      const message = document.getElementById("checkin-message");
+      button.disabled = true;
+      try {
+        const { result } = await postJson("/api/demo/reader-verifications", {
+          action: "repeat_checkin",
+          reader_subject_ref: DEMO_RETURNING_SUBJECT_REF
+        });
+        showMessage(message, `Returning visitor checked in at ${formatTime(result.checked_in_at)}.`, "success");
+        await refreshVisits();
+      } catch (error) {
+        showMessage(message, error.message, "error");
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    async function acquireVerification(which) {
+      const fields = {
+        checkin: {
+          action: "checkin",
+          typeId: "document-type",
+          numberId: "document-number",
+          statusId: "checkin-reader-status",
+          messageId: "checkin-message",
+          buttonId: "checkin-match"
+        },
+        checkout: {
+          action: "checkout",
+          visitId: "checkout-visit",
+          statusId: "checkout-reader-status",
+          messageId: "checkout-message",
+          buttonId: "checkout-match"
+        },
+        student_exit: {
+          action: "student_exit",
+          typeId: "guardian-document-type",
+          numberId: "guardian-document-number",
+          statusId: "student-exit-reader-status",
+          messageId: "departure-message",
+          buttonId: "student-exit-match"
+        }
+      }[which];
+      const status = document.getElementById(fields.statusId);
+      const message = document.getElementById(fields.messageId);
+      const isCheckin = which === "checkin";
+      const isStudentExit = which === "student_exit";
+      const verificationId = () => isCheckin
+        ? checkinVerificationId
+        : isStudentExit ? studentExitVerificationId : checkoutVerificationId;
+      const setVerificationId = (value) => {
+        if (isCheckin) checkinVerificationId = value;
+        else if (isStudentExit) studentExitVerificationId = value;
+        else checkoutVerificationId = value;
+      };
+      setVerificationId("");
+      let payload = { action: fields.action };
+      if (which === "checkout") {
+        const visitId = document.getElementById(fields.visitId).value;
+        if (!visitId) {
+          showMessage(message, "Select a visitor first.", "error");
+          return;
+        }
+        payload.visit_id = visitId;
+      } else if (isStudentExit || readerMode === "mock") {
+        const documentNumber = document.getElementById(fields.numberId).value.trim();
+        const documentType = document.getElementById(fields.typeId).value;
+        if (!documentNumber) {
+          showMessage(message, "Scan or enter the ID number first.", "error");
+          return;
+        }
+        payload.document_type = documentType;
+        payload.document_number = documentNumber;
+        if (isCheckin) {
+          const fullName = document.getElementById("full-name").value.trim();
+          if (!fullName) {
+            showMessage(message, "Enter or scan the visitor's full name first.", "error");
+            return;
+          }
+          payload.full_name = fullName;
+          if (documentNumber === "SAMPLE001" && fullName === "Demo Visitor") {
+            payload.reader_subject_ref = DEMO_RETURNING_SUBJECT_REF;
+          }
+        }
+      }
+      const scanRequestedAt = new Date();
+      const button = document.getElementById(fields.buttonId);
+      button.disabled = true;
+      status.classList.remove("ok");
+      try {
+        if (readerMode === "mock") {
+          const { result } = await postJson("/api/demo/reader-verifications", payload);
+          setVerificationId(result.verification_id);
+          status.textContent = "Test match";
+        } else {
+          status.textContent = isCheckin
+            ? "Waiting for ID + fingerprint…"
+            : "Waiting for the connected reader…";
+          const query = new URLSearchParams(payload);
+          if (isCheckin) query.set("after", scanRequestedAt.toISOString());
+          for (let attempt = 0; attempt < 45; attempt += 1) {
+            await new Promise((resolve) => window.setTimeout(resolve, 1000));
+            const { response, result } = await jsonRequest(`/api/reader/verifications/pending?${query}`);
+            if (response.status === 204) continue;
+            setVerificationId(result.verification_id);
+            if (isCheckin) {
+              document.getElementById("full-name").value = result.full_name;
+              document.getElementById("document-type").value = result.document_type;
+              document.getElementById("document-number").value = result.document_number;
+              status.textContent = "ID details captured · fingerprint matched";
+            } else {
+              status.textContent = "Reader verification received";
+            }
+            break;
+          }
+          if (!verificationId()) {
+            throw new Error("No reader verification arrived before it expired.");
+          }
+        }
+        status.classList.add("ok");
+        showMessage(message, "", "");
+      } catch (error) {
+        status.textContent = "No verification recorded";
+        showMessage(message, error.message, "error");
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    document.getElementById("checkin-match").addEventListener("click", () => acquireVerification("checkin"));
+    document.getElementById("checkout-match").addEventListener("click", () => acquireVerification("checkout"));
+    document.getElementById("student-exit-match").addEventListener("click", () => acquireVerification("student_exit"));
+
+    function formatTime(value) {
+      return new Intl.DateTimeFormat("en-KE", { hour: "2-digit", minute: "2-digit", day: "numeric", month: "short" })
+        .format(new Date(value));
+    }
+
+    function makeVisitRow(visit) {
+      const row = document.createElement("article");
+      row.className = "visit-row";
+      const details = document.createElement("div");
+      const name = document.createElement("div");
+      name.className = "visit-name";
+      name.textContent = visit.full_name;
+      const meta = document.createElement("div");
+      meta.className = "visit-meta";
+      const passLabels = {
+        general: "General visitor",
+        parent_guardian: "Parent / guardian",
+        event_guest: "Event guest",
+        contractor: "Contractor",
+        delivery: "Delivery"
+      };
+      const idNumber = visit.document_number ||
+        (visit.document || "").replace(`${visit.document_type} `, "") ||
+        "Not available";
+      meta.textContent = `${visit.document_type} · ID No. ${idNumber} · ${passLabels[visit.visitor_type] || "Visitor"} · ${visit.host} · ${visit.purpose}`;
+      const status = document.createElement("span");
+      status.className = `visit-status${visit.checked_out_at ? " out" : ""}`;
+      status.textContent = visit.checked_out_at ? "Checked out" : "On site";
+      details.append(name, meta, status);
+      const time = document.createElement("div");
+      time.className = "visit-time";
+      time.textContent = visit.checked_out_at
+        ? `Out ${formatTime(visit.checked_out_at)}`
+        : `In ${formatTime(visit.checked_in_at)}`;
+      row.append(details, time);
+      return row;
+    }
+
+    function makeStudentRow(student, canManageRoster) {
+      const row = document.createElement("article");
+      row.className = "student-row";
+      const heading = document.createElement("div");
+      heading.className = "student-row-heading";
+      const identity = document.createElement("div");
+      const name = document.createElement("div");
+      name.className = "visit-name";
+      name.textContent = student.full_name;
+      const className = document.createElement("div");
+      className.className = "visit-meta";
+      className.textContent = `Adm/Reg No. ${student.admission_number || "—"} · ${student.class_name}`;
+      identity.append(name, className);
+      const inSession = student.session_status === "in_session";
+      const status = document.createElement("span");
+      status.className = `visit-status${inSession ? "" : " out"}`;
+      status.textContent = inSession ? "In session" : "Checked out";
+      heading.append(identity, status);
+      row.append(heading);
+      const movementTime = document.createElement("div");
+      movementTime.className = "student-session-meta";
+      movementTime.textContent = student.last_movement_at
+        ? `${inSession ? "Arrived" : "Checked out"} ${formatTime(student.last_movement_at)}`
+        : "No movement recorded";
+      row.append(movementTime);
+      if (canManageRoster) {
+        const guardianDetails = document.createElement("details");
+        guardianDetails.className = "guardian-details";
+        const guardianSummary = document.createElement("summary");
+        guardianSummary.textContent = `Authorized guardians (${student.guardians.length})`;
+        guardianDetails.append(guardianSummary);
+        const guardians = document.createElement("div");
+        guardians.className = "guardian-list";
+        if (student.guardians.length === 0) {
+          guardians.textContent = "No authorized guardians on file.";
+        } else {
+          for (const guardian of student.guardians) {
+            const item = document.createElement("div");
+            item.className = "student-row-heading";
+            const detail = document.createElement("span");
+            detail.textContent = `${guardian.full_name} · ${guardian.relationship} · ${guardian.document}`;
+            const revoke = document.createElement("button");
+            revoke.className = "button button-outline button-small";
+            revoke.type = "button";
+            revoke.textContent = "Revoke";
+            revoke.addEventListener("click", async () => {
+              if (!window.confirm(`Revoke ${guardian.full_name}'s pickup authorization?`)) return;
+              try {
+                await jsonRequest(`/api/guardians/${guardian.id}`, {
+                  method: "DELETE",
+                  headers: { "X-CSRF-Token": csrfToken }
+                });
+                await refreshSchoolData();
+              } catch (error) {
+                window.alert(error.message);
+              }
+            });
+            item.append(detail, revoke);
+            guardians.append(item);
+          }
+        }
+        guardianDetails.append(guardians);
+        row.append(guardianDetails);
+      }
+      return row;
+    }
+
+    async function refreshSchoolData() {
+      if (document.getElementById("school-workflows").hidden || protectedContent.hidden) return;
+      const requestGeneration = sessionGeneration;
+      const roster = document.getElementById("student-list");
+      try {
+        const { result: students } = await jsonRequest("/api/students");
+        if (protectedContent.hidden || requestGeneration !== sessionGeneration) return;
+        const canManageRoster = !document.getElementById("roster-management").hidden;
+        const inSessionCount = students.filter((student) => student.session_status === "in_session").length;
+        document.getElementById("student-status-summary").textContent =
+          `${inSessionCount} in session · ${students.length - inSessionCount} checked out`;
+        roster.replaceChildren();
+        if (students.length === 0) {
+          const empty = document.createElement("div");
+          empty.className = "empty";
+          empty.textContent = canManageRoster
+            ? "No students yet. Open roster management to add students."
+            : "No students are on the roster yet.";
+          roster.append(empty);
+        } else {
+          const orderedStudents = [...students].sort((left, right) => {
+            const statusOrder =
+              Number(left.session_status !== "in_session") -
+              Number(right.session_status !== "in_session");
+            return statusOrder || left.full_name.localeCompare(right.full_name);
+          });
+          for (const student of orderedStudents) {
+            roster.append(makeStudentRow(student, canManageRoster));
+          }
+        }
+
+        for (const selectId of ["arrival-student", "departure-student", "guardian-student"]) {
+          const select = document.getElementById(selectId);
+          const previousValue = select.value;
+          const placeholder = document.createElement("option");
+          placeholder.value = "";
+          placeholder.textContent = students.length ? "Select a student" : "No students on roster";
+          placeholder.disabled = students.length > 0;
+          placeholder.selected = true;
+          select.replaceChildren(placeholder);
+          for (const student of students) {
+            const option = document.createElement("option");
+            option.value = student.id;
+            option.textContent = `${student.full_name} · ${student.admission_number || "No Adm/Reg No."} · ${student.class_name}`;
+            select.append(option);
+          }
+          if (students.some((student) => student.id === previousValue)) select.value = previousValue;
+        }
+      } catch (error) {
+        if (protectedContent.hidden || requestGeneration !== sessionGeneration) return;
+        roster.replaceChildren();
+        document.getElementById("student-status-summary").textContent = "Status unavailable";
+        const errorMessage = document.createElement("div");
+        errorMessage.className = "empty";
+        errorMessage.textContent = error.message;
+        roster.append(errorMessage);
+      }
+    }
+
+    async function refreshVisits() {
+      if (protectedContent.hidden) return;
+      const requestGeneration = sessionGeneration;
+      void refreshSchoolData();
+      const list = document.getElementById("visit-list");
+      try {
+        const [visitResponse, activeResponse] = await Promise.all([
+          jsonRequest("/api/visits"),
+          jsonRequest("/api/visits?view=active")
+        ]);
+        if (protectedContent.hidden || requestGeneration !== sessionGeneration) return;
+        const result = visitResponse.result;
+        const activeVisits = activeResponse.result.visits;
+        const checkoutSelect = document.getElementById("checkout-visit");
+        const previousVisitId = checkoutSelect.value;
+        const placeholder = new Option(
+          activeVisits.length ? "Select checked-in visitor" : "No visitors on site",
+          ""
+        );
+        placeholder.disabled = activeVisits.length > 0;
+        checkoutSelect.replaceChildren(placeholder);
+        for (const visit of activeVisits) {
+          checkoutSelect.add(
+            new Option(`${visit.full_name} · ${visit.document}`, visit.id)
+          );
+        }
+        if (activeVisits.some((visit) => visit.id === previousVisitId)) {
+          checkoutSelect.value = previousVisitId;
+        } else {
+          checkoutVerificationId = "";
+          document.getElementById("checkout-reader-status").textContent = "Select a visitor";
+          document.getElementById("checkout-reader-status").classList.remove("ok");
+        }
+        document.getElementById("stat-active").textContent = result.stats.active;
+        document.getElementById("stat-arrivals").textContent = result.stats.arrivals_today;
+        document.getElementById("stat-departures").textContent = result.stats.departures_today;
+        list.replaceChildren();
+        if (result.visits.length === 0) {
+          const empty = document.createElement("div");
+          empty.className = "empty";
+          empty.textContent = "No visitor passes yet.";
+          list.append(empty);
+        } else {
+          for (const visit of result.visits) list.append(makeVisitRow(visit));
+        }
+      } catch (error) {
+        if (protectedContent.hidden || requestGeneration !== sessionGeneration) return;
+        if (error.message.includes("Sign in") || error.message.includes("session has expired")) {
+          setSignedOut();
+          return;
+        }
+        list.replaceChildren();
+        const message = document.createElement("div");
+        message.className = "empty";
+        message.textContent = error.message;
+        list.append(message);
+      }
+    }
+
+    checkinForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const message = document.getElementById("checkin-message");
+      if (!checkinVerificationId) {
+        showMessage(message, "Verify the visitor with the reader before checking in.", "error");
+        return;
+      }
+      const values = Object.fromEntries(new FormData(checkinForm).entries());
+      values.privacy_notice_acknowledged = document.getElementById("privacy-ack").checked;
+      values.verification_id = checkinVerificationId;
+      try {
+        const { result } = await postJson("/api/checkin", values);
+        checkinForm.reset();
+        checkinVerificationId = "";
+        document.getElementById("checkin-reader-status").textContent = "No verification recorded";
+        document.getElementById("checkin-reader-status").classList.remove("ok");
+        showMessage(message, `${result.full_name} checked in.`, "success");
+        await refreshVisits();
+      } catch (error) {
+        checkinVerificationId = "";
+        showMessage(message, error.message, "error");
+      }
+    });
+
+    checkoutForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const message = document.getElementById("checkout-message");
+      if (!checkoutVerificationId) {
+        showMessage(message, "Scan the visitor's fingerprint first.", "error");
+        return;
+      }
+      const values = Object.fromEntries(new FormData(checkoutForm).entries());
+      values.verification_id = checkoutVerificationId;
+      try {
+        const { result } = await postJson("/api/checkout", values);
+        checkoutForm.reset();
+        checkoutVerificationId = "";
+        document.getElementById("checkout-reader-status").textContent = "No verification recorded";
+        document.getElementById("checkout-reader-status").classList.remove("ok");
+        showMessage(message, `${result.full_name} checked out.`, "success");
+        await refreshVisits();
+      } catch (error) {
+        checkoutVerificationId = "";
+        showMessage(message, error.message, "error");
+      }
+    });
+
+    arrivalForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const message = document.getElementById("arrival-message");
+      const values = Object.fromEntries(new FormData(arrivalForm).entries());
+      const studentId = values.student_id;
+      delete values.student_id;
+      try {
+        await postJson(`/api/students/${studentId}/arrivals`, values);
+        arrivalForm.reset();
+        showMessage(message, "Student arrival recorded.", "success");
+        await refreshSchoolData();
+      } catch (error) {
+        showMessage(message, error.message, "error");
+      }
+    });
+
+    departureForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const message = document.getElementById("departure-message");
+      if (!studentExitVerificationId) {
+        showMessage(message, "Verify the authorized guardian with the reader before approving release.", "error");
+        return;
+      }
+      const values = {
+        document_type: document.getElementById("guardian-document-type").value,
+        document_number: document.getElementById("guardian-document-number").value.trim(),
+        verification_id: studentExitVerificationId,
+        operator_approved: document.getElementById("operator-release-approval").checked,
+        note: document.getElementById("departure-note").value.trim()
+      };
+      const studentId = document.getElementById("departure-student").value;
+      try {
+        const { result } = await postJson(`/api/students/${studentId}/departures`, values);
+        departureForm.reset();
+        studentExitVerificationId = "";
+        document.getElementById("student-exit-reader-status").textContent = "No verification recorded";
+        document.getElementById("student-exit-reader-status").classList.remove("ok");
+        showMessage(message, `${result.student_name} released to ${result.guardian_name}.`, "success");
+        await refreshSchoolData();
+      } catch (error) {
+        showMessage(message, error.message, "error");
+      }
+    });
+
+    studentCreateForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const message = document.getElementById("student-create-message");
+      const values = Object.fromEntries(new FormData(studentCreateForm).entries());
+      try {
+        await postJson("/api/students", values);
+        studentCreateForm.reset();
+        showMessage(message, "Student added to the roster.", "success");
+        await refreshSchoolData();
+      } catch (error) {
+        showMessage(message, error.message, "error");
+      }
+    });
+
+    guardianCreateForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const message = document.getElementById("guardian-create-message");
+      const studentId = document.getElementById("guardian-student").value;
+      const values = {
+        full_name: document.getElementById("new-guardian-name").value.trim(),
+        relationship: document.getElementById("new-guardian-relationship").value.trim(),
+        document_type: document.getElementById("new-guardian-document-type").value,
+        document_number: document.getElementById("new-guardian-document-number").value.trim()
+      };
+      try {
+        await postJson(`/api/students/${studentId}/guardians`, values);
+        guardianCreateForm.reset();
+        showMessage(message, "Guardian authorized for this student.", "success");
+        await refreshSchoolData();
+      } catch (error) {
+        showMessage(message, error.message, "error");
+      }
+    });
+
+    document.getElementById("guardian-document-number").addEventListener("input", () => {
+      studentExitVerificationId = "";
+      const status = document.getElementById("student-exit-reader-status");
+      status.textContent = "Identity changed; verify guardian again";
+      status.classList.remove("ok");
+    });
+    document.getElementById("guardian-document-type").addEventListener("change", () => {
+      studentExitVerificationId = "";
+      const status = document.getElementById("student-exit-reader-status");
+      status.textContent = "Document type changed; verify guardian again";
+      status.classList.remove("ok");
+    });
+    document.getElementById("departure-student").addEventListener("change", () => {
+      studentExitVerificationId = "";
+      const status = document.getElementById("student-exit-reader-status");
+      status.textContent = "Student changed; verify guardian again";
+      status.classList.remove("ok");
+    });
+    document.getElementById("document-number").addEventListener("input", () => {
+      checkinVerificationId = "";
+      document.getElementById("checkin-reader-status").textContent = "Identity changed; verify again";
+      document.getElementById("checkin-reader-status").classList.remove("ok");
+    });
+    document.getElementById("full-name").addEventListener("input", () => {
+      checkinVerificationId = "";
+      document.getElementById("checkin-reader-status").textContent = "Identity changed; verify again";
+      document.getElementById("checkin-reader-status").classList.remove("ok");
+    });
+    document.getElementById("checkout-visit").addEventListener("change", () => {
+      checkoutVerificationId = "";
+      document.getElementById("checkout-reader-status").textContent = "Visitor selected; scan fingerprint";
+      document.getElementById("checkout-reader-status").classList.remove("ok");
+    });
+    document.getElementById("document-type").addEventListener("change", () => {
+      checkinVerificationId = "";
+      document.getElementById("checkin-reader-status").textContent = "Document type changed; verify again";
+      document.getElementById("checkin-reader-status").classList.remove("ok");
+    });
+    document.getElementById("refresh-button").addEventListener("click", refreshVisits);
+    document.getElementById("refresh-school-button").addEventListener("click", refreshSchoolData);
+    loadConfiguration().then(restoreSession);
+    window.setInterval(refreshVisits, 5000);
+  </script>
+</body>
+</html>
